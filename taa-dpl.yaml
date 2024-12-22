@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taa-dpl
+  labels:
+    app: taa
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: taa
+  template:
+    metadata:
+      labels:
+        app: taa
+    spec:
+      containers:
+      - name: taa-nginx
+        image: kumcp1/k8st10-nginx:latest
+        resources:
+        ports:
+        - containerPort: 80
+      - name: taa-php
+        image: kumcp1/k8st10-php:latest
+        env:
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: taa-cfm
+              key: db_host
+        - name: DB_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: taa-cfm
+              key: db_name
+        - name: DB_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: taa-cfm
+              key: db_user
+        - name: DB_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: taa-cfm
+              key: db_pw
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 2
